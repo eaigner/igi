@@ -37,7 +37,7 @@ func (t Trits) ToTrytes(v *Trytes) bool {
 	n := t.Len() / 3
 	v.buf = make([]byte, n)
 	for i := 0; i < n; i++ {
-		j := t.At(i*3) + t.At(i*3+1)*3 + t.At(i*3+2)*9
+		j := t.a[i*3] + t.a[i*3+1]*3 + t.a[i*3+2]*9
 		if j < 0 {
 			j += int8(len(tryteAlphabet))
 		}

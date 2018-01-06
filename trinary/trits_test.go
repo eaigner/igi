@@ -20,28 +20,8 @@ func TestTritsFromInt8(t *testing.T) {
 
 	for _, v := range table {
 		var trits Trits
-		ok := TritsFromInt8(v.in, &trits)
-		if ok != v.result {
-			t.Fail()
-		}
-		if ok && trits.Len() != len(v.in) {
-			t.Fail()
-		}
-		if !ok && trits.Len() != 0 {
-			t.Fail()
-		}
-	}
-}
-
-func TestTritsAt(t *testing.T) {
-	var trits Trits
-	a := []int8{-1, 0, 1, 0, -1}
-	if !TritsFromInt8(a, &trits) {
-		t.Fail()
-	}
-	for i, v := range a {
-		if trits.At(i) != v {
-			t.Fail()
+		if TritsFromInt8(v.in, &trits) != v.result {
+			t.Fatal()
 		}
 	}
 }

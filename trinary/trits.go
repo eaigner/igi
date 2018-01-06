@@ -1,11 +1,17 @@
 package trinary
 
+import (
+	"sync"
+)
+
 const (
 	tryteAlphabet = "9ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
 
 type Trits struct {
-	a []int8
+	a   []int8
+	s   string
+	mtx sync.Mutex
 }
 
 func TritsFromInt8(a []int8, t *Trits) bool {
@@ -30,31 +36,26 @@ func (t Trits) At(i int) int8 {
 	return t.a[i]
 }
 
-func (t Trits) ToTrytes(v *Trytes) bool {
+func (t *Trits) ToTrytes() string {
+	t.mtx.Lock()
+	defer func() {
+		t.mtx.Unlock()
+	}()
+	if len(t.s) > 0 {
+		return t.s
+	}
 	if t.Len()%3 != 0 {
-		return false
+		return ""
 	}
 	n := t.Len() / 3
-	v.buf = make([]byte, n)
+	v := make([]byte, n)
 	for i := 0; i < n; i++ {
 		j := t.a[i*3] + t.a[i*3+1]*3 + t.a[i*3+2]*9
 		if j < 0 {
 			j += int8(len(tryteAlphabet))
 		}
-		v.buf[i] = tryteAlphabet[j]
+		v[i] = tryteAlphabet[j]
 	}
-	return true
-}
-
-type Trytes struct {
-	buf []byte
-}
-
-func TrytesFromInt8(a []int8, t *Trytes) bool {
-	var v Trits
-	return TritsFromInt8(a, &v) && v.ToTrytes(t)
-}
-
-func (t Trytes) String() string {
-	return string(t.buf)
+	t.s = string(v)
+	return t.s
 }

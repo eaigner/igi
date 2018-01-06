@@ -63,15 +63,15 @@ func TestTritsToTrytes(t *testing.T) {
 		t.Fatal("invalid input length")
 	}
 
-	var trytes Trytes
-	if !TrytesFromInt8(in, &trytes) {
-		t.Fatal()
+	var v Trits
+	if !TritsFromInt8(in, &v) {
+		t.Fatal("could not convert to trits")
 	}
 
+	s := v.ToTrytes()
 	expect := "NOPQRSTUVWXYZ9ABCDEFGHIJKLM"
 
-	if s := trytes.String(); s != expect {
+	if s != expect {
 		t.Logf("is=%s, want=%s", s, expect)
 	}
-
 }

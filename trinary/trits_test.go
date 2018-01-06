@@ -1,11 +1,10 @@
 package trinary
 
 import (
-	"reflect"
 	"testing"
 )
 
-func TestToTrits(t *testing.T) {
+func TestTritsFromInt8(t *testing.T) {
 	type test struct {
 		in     []int8
 		result bool
@@ -20,14 +19,15 @@ func TestToTrits(t *testing.T) {
 	}
 
 	for _, v := range table {
-		trits, ok := ToTrits(v.in)
+		var trits Trits
+		ok := TritsFromInt8(v.in, &trits)
 		if ok != v.result {
 			t.Fail()
 		}
-		if ok && !reflect.DeepEqual([]int8(trits), v.in) {
+		if ok && trits.Len() != len(v.in) {
 			t.Fail()
 		}
-		if !ok && len(trits) > 0 {
+		if !ok && trits.Len() != 0 {
 			t.Fail()
 		}
 	}

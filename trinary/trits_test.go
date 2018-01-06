@@ -47,38 +47,31 @@ func TestTritsAt(t *testing.T) {
 }
 
 func TestTritsToTrytes(t *testing.T) {
-	type test struct {
-		in     []int8
-		result string
-	}
+	var in []int8
 
-	var table []test
+	r := []int8{-1, 0, 1}
 
-	for i := -1; i < 2; i++ {
-		for j := -1; j < 2; j++ {
-			for k := -1; k < 2; k++ {
-				v := []int8{int8(k), int8(j), int8(i)}
-				c := tryteAlphabet[(len(table)+14)%len(tryteAlphabet)]
-				table = append(table, test{v, string(c)})
+	for _, i := range r {
+		for _, j := range r {
+			for _, k := range r {
+				in = append(in, k, j, i)
 			}
 		}
 	}
 
-	if len(table) != len(tryteAlphabet) {
-		t.Fatal("invalid table length")
+	if len(in) != len(tryteAlphabet)*3 {
+		t.Fatal("invalid input length")
 	}
 
-	for _, v := range table {
-		var trits Trits
-		if !TritsFromInt8(v.in, &trits) {
-			t.Fail()
-		}
-		var trytes Trytes
-		if !trits.ToTrytes(&trytes) {
-			t.Fail()
-		}
-		if s := trytes.String(); s != v.result {
-			t.Logf("is=%s, want=%s", s, v.result)
-		}
+	var trytes Trytes
+	if !TrytesFromInt8(in, &trytes) {
+		t.Fatal()
 	}
+
+	expect := "NOPQRSTUVWXYZ9ABCDEFGHIJKLM"
+
+	if s := trytes.String(); s != expect {
+		t.Logf("is=%s, want=%s", s, expect)
+	}
+
 }

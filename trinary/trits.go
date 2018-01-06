@@ -50,6 +50,11 @@ type Trytes struct {
 	buf []byte
 }
 
+func TrytesFromInt8(a []int8, t *Trytes) bool {
+	var v Trits
+	return TritsFromInt8(a, &v) && v.ToTrytes(t)
+}
+
 func (t Trytes) String() string {
 	return string(t.buf)
 }

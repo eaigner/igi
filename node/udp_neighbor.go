@@ -57,7 +57,7 @@ func (udp *UDPNeighbor) read(conn *net.UDPConn) {
 		} else {
 			// TODO: remove log and handle trytes
 			if trinary.BytesToTrits(buf[:n], &t) > 0 {
-				udp.logger.Printf("read trytes UDP packet: len=%v, %s", t.Len(), t.ToTrytes())
+				udp.logger.Printf("read trytes UDP packet: len=%v, %s", t.Len(), t.Trytes())
 			} else {
 				udp.logger.Printf("read raw UDP packet: len=%v, %x", n, buf[:n])
 			}

@@ -42,6 +42,7 @@ func TritsFromInt8(a []int8, t *Trits) bool {
 			return false
 		}
 	}
+	t.a = make([]int8, len(a))
 	copy(t.a, a)
 	return true
 }
@@ -89,7 +90,7 @@ func (t Trits) Len() int {
 	return len(t.a)
 }
 
-func (t Trits) ToTrytes() string {
+func (t Trits) Trytes() string {
 	if len(t.a)%3 != 0 {
 		return ""
 	}

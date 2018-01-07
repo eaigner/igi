@@ -48,11 +48,11 @@ func TestTritsToTrytes(t *testing.T) {
 		t.Fatal("could not convert to trits")
 	}
 
-	s := v.ToTrytes()
+	s := v.Trytes()
 	expect := "NOPQRSTUVWXYZ9ABCDEFGHIJKLM"
 
 	if s != expect {
-		t.Logf("is=%s, want=%s", s, expect)
+		t.Fatalf("is=%s, want=%s", s, expect)
 	}
 }
 

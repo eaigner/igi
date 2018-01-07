@@ -5,18 +5,22 @@ import (
 	"net"
 )
 
-type Udp struct {
+type UDPNeighbor struct {
 	host   string
+	done   chan bool
 	logger *log.Logger
 	conn   *net.UDPConn
-	done   chan bool
 }
 
-func NewUdp(host string, logger *log.Logger) *Udp {
-	return &Udp{host: host, logger: logger, done: make(chan bool, 1)}
+func NewUDPNeighbor(host string, logger *log.Logger) *UDPNeighbor {
+	return &UDPNeighbor{
+		host:   host,
+		done:   make(chan bool, 1),
+		logger: logger,
+	}
 }
 
-func (udp *Udp) Serve() error {
+func (udp *UDPNeighbor) Listen() error {
 	addr, err := net.ResolveUDPAddr("udp", udp.host)
 	if err != nil {
 		return err
@@ -26,25 +30,20 @@ func (udp *Udp) Serve() error {
 		return err
 	}
 
-	udp.conn = conn
 	udp.logger.Printf("listening on udp://%v", addr)
+	udp.conn = conn
 
-	go run(udp, conn)
+	go udp.read(conn)
 
 	return nil
 }
 
-func (udp *Udp) Shutdown() error {
-	if udp.conn != nil {
-		if err := udp.conn.Close(); err != nil {
-			return err
-		}
-		udp.conn = nil
-	}
-	return nil
+func (udp *UDPNeighbor) Close() {
+	udp.conn.Close()
+	<-udp.done
 }
 
-func run(udp *Udp, conn *net.UDPConn) {
+func (udp *UDPNeighbor) read(conn *net.UDPConn) {
 	var buf [2048]byte
 	for {
 		n, err := conn.Read(buf[:])

@@ -3,6 +3,8 @@ package node
 import (
 	"log"
 	"net"
+
+	"github.com/eaigner/igi/trinary"
 )
 
 type UDPNeighbor struct {
@@ -44,14 +46,21 @@ func (udp *UDPNeighbor) Close() {
 }
 
 func (udp *UDPNeighbor) read(conn *net.UDPConn) {
-	var buf [2048]byte
+	var buf [1024 * 10]byte
+	var t trinary.Trits
+
 	for {
 		n, err := conn.Read(buf[:])
 		if err != nil {
 			udp.logger.Printf("error reading UDP packet: %v", err)
 			break
 		} else {
-			udp.logger.Printf("read UDP packet: len=%v, %v", n, buf[:n])
+			// TODO: remove log and handle trytes
+			if trinary.BytesToTrits(buf[:n], &t) > 0 {
+				udp.logger.Printf("read trytes UDP packet: len=%v, %s", t.Len(), t.ToTrytes())
+			} else {
+				udp.logger.Printf("read raw UDP packet: len=%v, %x", n, buf[:n])
+			}
 		}
 	}
 	udp.logger.Printf("udp server closed")

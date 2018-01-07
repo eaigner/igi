@@ -55,3 +55,7 @@ func TestTritsToTrytes(t *testing.T) {
 		t.Logf("is=%s, want=%s", s, expect)
 	}
 }
+
+func TestBytesToTrits(t *testing.T) {
+	// TODO(era): impl
+}

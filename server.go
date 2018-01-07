@@ -38,14 +38,14 @@ func main() {
 
 	node := gonode.New(conf, logger)
 
-	logger.Println("starting server...")
+	logger.Println("starting node...")
 
 	if err := node.Serve(); err != nil {
 		logger.Printf("error starting node: %v", err)
 		return
 	}
 
-	logger.Println("server started")
+	logger.Println("node started")
 
 	<-done
 
@@ -53,5 +53,5 @@ func main() {
 		logger.Printf("error shutting down node: %v", err)
 	}
 
-	logger.Println("server stopped")
+	logger.Println("node stopped")
 }

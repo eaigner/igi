@@ -3,9 +3,9 @@ package node
 import "strings"
 
 type Conf struct {
-	Port      int
-	UdpPort   int
-	TcpPort   int
+	HttpHost  string
+	UdpHost   string
+	TcpHost   string
 	Debug     bool
 	Testnet   bool
 	Neighbors MultiString

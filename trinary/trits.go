@@ -32,32 +32,21 @@ func incrementTrits(trits []int8, n int) {
 	}
 }
 
-type Trits struct {
-	a []int8
-}
-
-func TritsFromInt8(a []int8, t *Trits) bool {
+func Validate(a []int8) bool {
 	for _, v := range a {
 		if !validTrit(v) {
 			return false
 		}
 	}
-	t.a = make([]int8, len(a))
-	copy(t.a, a)
 	return true
 }
 
-func BytesToTrits(b []byte, t *Trits) int {
-	// const trinarySize = 8019
-	n := len(b) * tritsPerByte
+func Trits(dst []int8, src []byte) int {
+	n := len(src) * tritsPerByte
 	offset := 0
 
-	if len(t.a) < n {
-		t.a = make([]int8, n)
-	}
-
-	for i := 0; i < len(b) && offset < n; i++ {
-		x := int(int8(b[i])) // cast twice or we will lose the sign
+	for i := 0; i < len(src) && offset < n; i++ {
+		x := int(int8(src[i])) // cast twice or we will lose the sign
 		if x < 0 {
 			x += len(bytesToTrits)
 		}
@@ -69,13 +58,13 @@ func BytesToTrits(b []byte, t *Trits) int {
 
 		// TODO: handle case of malicious bytes greater than len(bytesToTrits)
 
-		copy(t.a[offset:offset+o], bytesToTrits[x][0:o])
+		copy(dst[offset:offset+o], bytesToTrits[x][0:o])
 
 		offset += tritsPerByte
 	}
 
 	for offset < n {
-		t.a[offset] = 0
+		dst[offset] = 0
 		offset++
 	}
 
@@ -86,22 +75,59 @@ func validTrit(v int8) bool {
 	return v >= -1 && v <= 1
 }
 
-func (t Trits) Len() int {
-	return len(t.a)
+func LenBytes(trits []int8) int {
+	return (len(trits) + tritsPerByte - 1) / tritsPerByte
 }
 
-func (t Trits) Trytes() string {
-	if len(t.a)%3 != 0 {
+func Bytes(dst []byte, src []int8) int {
+	n := LenBytes(src)
+
+	if len(dst) < n {
+		return 0
+	}
+
+	var v int8
+	var j0 int
+
+	for i := 0; i < n; i++ {
+		v = 0
+		j0 = len(src) - i*tritsPerByte
+		if j0 >= 5 {
+			j0 = tritsPerByte
+		}
+		for j := j0 - 1; j >= 0; j-- {
+			v = v*int8(tritRadix) + src[i*tritsPerByte+j]
+		}
+		dst[i] = byte(v)
+	}
+
+	return n
+}
+
+func Trytes(t []int8) string {
+	if len(t)%3 != 0 {
 		return ""
 	}
-	n := len(t.a) / 3
+	n := len(t) / 3
 	v := make([]byte, n)
 	for i := 0; i < n; i++ {
-		j := t.a[i*3] + t.a[i*3+1]*3 + t.a[i*3+2]*9
+		j := t[i*3] + t[i*3+1]*3 + t[i*3+2]*9
 		if j < 0 {
 			j += int8(len(tryteAlphabet))
 		}
 		v[i] = tryteAlphabet[j]
 	}
 	return string(v)
+}
+
+func Equals(t1 []int8, t2 []int8) bool {
+	if len(t1) != len(t2) {
+		return false
+	}
+	for i, v := range t1 {
+		if t2[i] != v {
+			return false
+		}
+	}
+	return true
 }

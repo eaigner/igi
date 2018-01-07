@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestTritsFromInt8(t *testing.T) {
+func TestValidate(t *testing.T) {
 	type test struct {
 		in     []int8
 		result bool
@@ -19,14 +19,13 @@ func TestTritsFromInt8(t *testing.T) {
 	}
 
 	for _, v := range table {
-		var trits Trits
-		if TritsFromInt8(v.in, &trits) != v.result {
+		if Validate(v.in) != v.result {
 			t.Fatal()
 		}
 	}
 }
 
-func TestTritsToTrytes(t *testing.T) {
+func TestTrytes(t *testing.T) {
 	var in []int8
 
 	r := []int8{-1, 0, 1}
@@ -43,12 +42,7 @@ func TestTritsToTrytes(t *testing.T) {
 		t.Fatal("invalid input length")
 	}
 
-	var v Trits
-	if !TritsFromInt8(in, &v) {
-		t.Fatal("could not convert to trits")
-	}
-
-	s := v.Trytes()
+	s := Trytes(in)
 	expect := "NOPQRSTUVWXYZ9ABCDEFGHIJKLM"
 
 	if s != expect {
@@ -56,6 +50,28 @@ func TestTritsToTrytes(t *testing.T) {
 	}
 }
 
-func TestBytesToTrits(t *testing.T) {
+func TestBytes(t *testing.T) {
+	// Must be a multiple of tritsPerByte
+	var a = []int8{-1, 0, 1, 0, -1, 1, 1, 1, 1, -1}
+	var b = make([]int8, 10)
+
+	if x := LenBytes(a); x != 2 {
+		t.Fatal(x)
+	}
+
+	var buf [10]byte
+
+	if x := Bytes(buf[:], a); x != 2 {
+		t.Fatal(x)
+	}
+	if x := Trits(b, buf[:2]); x != len(a) {
+		t.Fatal(x)
+	}
+	if !Equals(a, b) {
+		t.Fatal()
+	}
+}
+
+func TestEquals(t *testing.T) {
 	// TODO(era): impl
 }

@@ -32,6 +32,7 @@ func incrementTrits(trits []int8, n int) {
 	}
 }
 
+// Validate checks if a trit slice is valid.
 func Validate(a []int8) bool {
 	for _, v := range a {
 		if !validTrit(v) {
@@ -41,6 +42,9 @@ func Validate(a []int8) bool {
 	return true
 }
 
+// Trits converts a byte to a trit slice.
+// dst must at least be LenTrits(src) long.
+// Returns the number of trits written.
 func Trits(dst []int8, src []byte) int {
 	n := len(src) * tritsPerByte
 	offset := 0
@@ -78,14 +82,19 @@ func validTrit(v int8) bool {
 	return v >= -1 && v <= 1
 }
 
+// LenBytes returns the number of bytes that trits encodes to.
 func LenBytes(trits []int8) int {
 	return (len(trits) + tritsPerByte - 1) / tritsPerByte
 }
 
+// LenTrits returns the number of trits that fit into bytes.
 func LenTrits(bytes []byte) int {
 	return len(bytes) * tritsPerByte
 }
 
+// Bytes converts a trit to a byte slice.
+// dst must at least be LenBytes(src) long.
+// Returns the number of bytes written.
 func Bytes(dst []byte, src []int8) int {
 	n := LenBytes(src)
 
@@ -111,6 +120,7 @@ func Bytes(dst []byte, src []int8) int {
 	return n
 }
 
+// Trytes converts trits into a tryte string.
 func Trytes(t []int8) string {
 	if len(t)%3 != 0 {
 		return ""
@@ -127,6 +137,7 @@ func Trytes(t []int8) string {
 	return string(v)
 }
 
+// Equals compares two trit buffers.
 func Equals(t1 []int8, t2 []int8) bool {
 	if len(t1) != len(t2) {
 		return false

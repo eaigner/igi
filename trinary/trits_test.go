@@ -1,6 +1,7 @@
 package trinary
 
 import (
+	"crypto/rand"
 	"testing"
 )
 
@@ -82,6 +83,28 @@ func TestTritsSliceValid(t *testing.T) {
 	}
 	if !Equals(dst, trits10) {
 		t.Fatal(dst)
+	}
+}
+
+func TestTritsMaliciousBytes(t *testing.T) {
+	var buf = make([]byte, 10)
+	var max = LenTrits(buf)
+	var tbuf = make([]int8, max)
+
+	for i := 0; i < 1000; i++ {
+		n, err := rand.Read(buf)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if n != len(buf) {
+			t.Fatal(n)
+		}
+
+		nt := Trits(tbuf, buf)
+
+		if nt != 0 && nt != max {
+			t.Fatal(nt)
+		}
 	}
 }
 

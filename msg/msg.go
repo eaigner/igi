@@ -61,6 +61,7 @@ type Message struct {
 	Bundle            []int8
 	Tag               []int8
 	ObsoleteTag       []int8
+	Nonce             []int8
 	AttachmentTs      int64
 	AttachmentTsUpper int64
 	AttachmentTsLower int64
@@ -94,6 +95,7 @@ func ParseTxnTrits(t []int8) (*Message, error) {
 	m.Bundle = chunk(t, bundleTrinaryOffset, bundleTrinarySize)
 	m.Tag = chunk(t, tagTrinaryOffset, tagTrinarySize)
 	m.ObsoleteTag = chunk(t, obsoleteTagTrinaryOffset, obsoleteTagTrinarySize)
+	m.Nonce = chunk(t, nonceTrinaryOffset, nonceTrinarySize)
 	m.AttachmentTs = chunkInt64(t, attachmentTimestampTrinaryOffset, attachmentTimestampTrinarySize)
 	m.AttachmentTsUpper = chunkInt64(t, attachmentTimestampUpperBoundTrinaryOffset, attachmentTimestampUpperBoundTrinarySize)
 	m.AttachmentTsLower = chunkInt64(t, attachmentTimestampLowerBoundTrinaryOffset, attachmentTimestampLowerBoundTrinarySize)
@@ -106,13 +108,14 @@ func ParseTxnTrits(t []int8) (*Message, error) {
 }
 
 func (m *Message) Debug() string {
-	return fmt.Sprintf("<Message address=%s trunk=%s branch=%s bundle=%s tag=%s otag=%s ats=%v atsh=%v atsl=%v value=%v ts=%v index=%v lindex=%v>",
+	return fmt.Sprintf("<Message address=%s trunk=%s branch=%s bundle=%s tag=%s otag=%s nonce=%s ats=%v atsh=%v atsl=%v value=%v ts=%v index=%v lindex=%v>",
 		trytes(m.Address),
 		trytes(m.Trunk),
 		trytes(m.Branch),
 		trytes(m.Bundle),
 		trytes(m.Tag),
 		trytes(m.ObsoleteTag),
+		trytes(m.Nonce),
 		m.AttachmentTs,
 		m.AttachmentTsUpper,
 		m.AttachmentTsLower,

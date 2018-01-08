@@ -1,5 +1,7 @@
 package trinary
 
+import "errors"
+
 const (
 	tryteAlphabet      = "9ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	tritsPerByte       = 5
@@ -11,6 +13,11 @@ const (
 
 var (
 	bytesToTrits [243][tritsPerByte]int8
+)
+
+var (
+	errBufferTooSmall = errors.New("buffer too small")
+	errMultipleThree  = errors.New("buffer size must be a multiple of 3")
 )
 
 func init() {
@@ -45,8 +52,13 @@ func Validate(a []int8) bool {
 // Trits converts a byte to a trit slice.
 // dst must at least be LenTrits(src) long.
 // Returns the number of trits written.
-func Trits(dst []int8, src []byte) int {
+func Trits(dst []int8, src []byte) (int, error) {
 	n := len(src) * tritsPerByte
+
+	if n < len(dst) {
+		return 0, errBufferTooSmall
+	}
+
 	offset := 0
 
 	for i := 0; i < len(src) && offset < n; i++ {
@@ -62,7 +74,7 @@ func Trits(dst []int8, src []byte) int {
 
 		// check if we have space left
 		if len(dst) < offset+o {
-			return 0
+			return 0, errBufferTooSmall
 		}
 
 		copy(dst[offset:offset+o], bytesToTrits[x][0:o])
@@ -75,7 +87,7 @@ func Trits(dst []int8, src []byte) int {
 		offset++
 	}
 
-	return n
+	return n, nil
 }
 
 func validTrit(v int8) bool {
@@ -95,11 +107,11 @@ func LenTrits(bytes []byte) int {
 // Bytes converts a trit to a byte slice.
 // dst must at least be LenBytes(src) long.
 // Returns the number of bytes written.
-func Bytes(dst []byte, src []int8) int {
+func Bytes(dst []byte, src []int8) (int, error) {
 	n := LenBytes(src)
 
 	if len(dst) < n {
-		return 0
+		return 0, errBufferTooSmall
 	}
 
 	var v int8
@@ -117,13 +129,13 @@ func Bytes(dst []byte, src []int8) int {
 		dst[i] = byte(v)
 	}
 
-	return n
+	return n, nil
 }
 
 // Trytes converts trits into a tryte string.
-func Trytes(t []int8) string {
+func Trytes(t []int8) (string, error) {
 	if len(t)%3 != 0 {
-		return ""
+		return "", errMultipleThree
 	}
 	n := len(t) / 3
 	v := make([]byte, n)
@@ -134,7 +146,7 @@ func Trytes(t []int8) string {
 		}
 		v[i] = tryteAlphabet[j]
 	}
-	return string(v)
+	return string(v), nil
 }
 
 // Equals compares two trit buffers.

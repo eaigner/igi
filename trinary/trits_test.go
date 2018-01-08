@@ -35,6 +35,7 @@ func TestTrytes(t *testing.T) {
 	var in []int8
 
 	r := []int8{-1, 0, 1}
+	expect := "NOPQRSTUVWXYZ9ABCDEFGHIJKLM"
 
 	for _, i := range r {
 		for _, j := range r {
@@ -48,9 +49,11 @@ func TestTrytes(t *testing.T) {
 		t.Fatal("invalid input length")
 	}
 
-	s := Trytes(in)
-	expect := "NOPQRSTUVWXYZ9ABCDEFGHIJKLM"
+	s, err := Trytes(in)
 
+	if err != nil {
+		t.Fatal(err)
+	}
 	if s != expect {
 		t.Fatalf("is=%s, want=%s", s, expect)
 	}
@@ -58,8 +61,11 @@ func TestTrytes(t *testing.T) {
 
 func TestTritsSliceTooSmall(t *testing.T) {
 	var dst []int8
-	n := Trits(dst, bytes10)
+	n, err := Trits(dst, bytes10)
 
+	if err != errBufferTooSmall {
+		t.Fatal(err)
+	}
 	if n != 0 {
 		t.Fatal(n)
 	}
@@ -76,8 +82,11 @@ func TestTritsSliceValid(t *testing.T) {
 	}
 
 	dst := make([]int8, max)
-	n := Trits(dst, bytes10)
+	n, err := Trits(dst, bytes10)
 
+	if err != nil {
+		t.Fatal(err)
+	}
 	if n != 10 {
 		t.Fatal(n)
 	}
@@ -100,10 +109,14 @@ func TestTritsMaliciousBytes(t *testing.T) {
 			t.Fatal(n)
 		}
 
-		nt := Trits(tbuf, buf)
+		nt, err := Trits(tbuf, buf)
 
-		if nt != 0 && nt != max {
-			t.Fatal(nt)
+		if nt == 0 && err != nil {
+			// ok
+		} else if nt == max && err == nil {
+			// ok
+		} else {
+			t.Fatal(nt, err)
 		}
 	}
 }
@@ -118,11 +131,21 @@ func TestBytes(t *testing.T) {
 
 	var buf [10]byte
 
-	if x := Bytes(buf[:], trits10); x != 2 {
+	x, err := Bytes(buf[:], trits10)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	if x != 2 {
 		t.Fatal(x)
 	}
 
-	if x := Trits(b, buf[:2]); x != len(trits10) {
+	x, err = Trits(b, buf[:2])
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	if x != len(trits10) {
 		t.Fatal(x)
 	}
 	if !Equals(trits10, b) {

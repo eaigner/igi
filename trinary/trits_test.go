@@ -108,5 +108,10 @@ func TestBytes(t *testing.T) {
 }
 
 func TestEquals(t *testing.T) {
-	// TODO(era): impl
+	if !Equals(trits10, trits10) {
+		t.Fatal()
+	}
+	if Equals(trits10, trits10[:2]) {
+		t.Fatal()
+	}
 }

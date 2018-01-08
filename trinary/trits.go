@@ -56,7 +56,10 @@ func Trits(dst []int8, src []byte) int {
 			o = j
 		}
 
-		// TODO: handle case of malicious bytes greater than len(bytesToTrits)
+		// check if we have space left
+		if len(dst) < offset+o {
+			return 0
+		}
 
 		copy(dst[offset:offset+o], bytesToTrits[x][0:o])
 
@@ -77,6 +80,10 @@ func validTrit(v int8) bool {
 
 func LenBytes(trits []int8) int {
 	return (len(trits) + tritsPerByte - 1) / tritsPerByte
+}
+
+func LenTrits(bytes []byte) int {
+	return len(bytes) * tritsPerByte
 }
 
 func Bytes(dst []byte, src []int8) int {

@@ -4,6 +4,11 @@ import (
 	"testing"
 )
 
+var (
+	trits10 = []int8{-1, 0, 1, 0, -1, 1, 1, 1, 1, -1}
+	bytes10 = []byte{0xb7, 0xd7}
+)
+
 func TestValidate(t *testing.T) {
 	type test struct {
 		in     []int8
@@ -50,24 +55,54 @@ func TestTrytes(t *testing.T) {
 	}
 }
 
+func TestTritsSliceTooSmall(t *testing.T) {
+	var dst []int8
+	n := Trits(dst, bytes10)
+
+	if n != 0 {
+		t.Fatal(n)
+	}
+	if len(dst) != 0 {
+		t.Fatal(dst)
+	}
+}
+
+func TestTritsSliceValid(t *testing.T) {
+	max := LenTrits(bytes10)
+
+	if max != 10 {
+		t.Fatal(max)
+	}
+
+	dst := make([]int8, max)
+	n := Trits(dst, bytes10)
+
+	if n != 10 {
+		t.Fatal(n)
+	}
+	if !Equals(dst, trits10) {
+		t.Fatal(dst)
+	}
+}
+
 func TestBytes(t *testing.T) {
 	// Must be a multiple of tritsPerByte
-	var a = []int8{-1, 0, 1, 0, -1, 1, 1, 1, 1, -1}
-	var b = make([]int8, 10)
+	var b = make([]int8, len(trits10))
 
-	if x := LenBytes(a); x != 2 {
+	if x := LenBytes(trits10); x != 2 {
 		t.Fatal(x)
 	}
 
 	var buf [10]byte
 
-	if x := Bytes(buf[:], a); x != 2 {
+	if x := Bytes(buf[:], trits10); x != 2 {
 		t.Fatal(x)
 	}
-	if x := Trits(b, buf[:2]); x != len(a) {
+
+	if x := Trits(b, buf[:2]); x != len(trits10) {
 		t.Fatal(x)
 	}
-	if !Equals(a, b) {
+	if !Equals(trits10, b) {
 		t.Fatal()
 	}
 }

@@ -45,7 +45,8 @@ const (
 )
 
 const (
-	hashSizeTrits = 243
+	hashSizeTrits  = 243
+	txnPacketBytes = 1650
 )
 
 var (
@@ -69,17 +70,20 @@ type Message struct {
 	LastIndex         int64
 }
 
-func ParseBytes(b []byte) (*Message, error) {
-	t := make([]int8, trinary.LenTrits(b))
+func ParseTxnBytes(b []byte) (*Message, error) {
+	if len(b) != txnPacketBytes {
+		return nil, errMessageTooShort
+	}
+	t := make([]int8, trinary.LenTrits(len(b)))
 	_, err := trinary.Trits(t, b)
 	if err != nil {
 		return nil, err
 	}
-	return ParseTrits(t)
+	return ParseTxnTrits(t)
 }
 
-func ParseTrits(t []int8) (*Message, error) {
-	if len(t) < trinarySize {
+func ParseTxnTrits(t []int8) (*Message, error) {
+	if len(t) != trinary.LenTrits(txnPacketBytes) {
 		return nil, errMessageTooShort
 	}
 	m := new(Message)

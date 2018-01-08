@@ -94,21 +94,21 @@ func validTrit(v int8) bool {
 	return v >= -1 && v <= 1
 }
 
-// LenBytes returns the number of bytes that trits encodes to.
-func LenBytes(trits []int8) int {
-	return (len(trits) + tritsPerByte - 1) / tritsPerByte
+// LenBytes returns the number of bytes for n trits
+func LenBytes(n int) int {
+	return (n + tritsPerByte - 1) / tritsPerByte
 }
 
-// LenTrits returns the number of trits that fit into bytes.
-func LenTrits(bytes []byte) int {
-	return len(bytes) * tritsPerByte
+// LenTrits returns the number of trits for n bytes
+func LenTrits(n int) int {
+	return n * tritsPerByte
 }
 
 // Bytes converts a trit to a byte slice.
 // dst must at least be LenBytes(src) long.
 // Returns the number of bytes written.
 func Bytes(dst []byte, src []int8) (int, error) {
-	n := LenBytes(src)
+	n := LenBytes(len(src))
 
 	if len(dst) < n {
 		return 0, errBufferTooSmall

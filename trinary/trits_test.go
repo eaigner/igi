@@ -75,7 +75,7 @@ func TestTritsSliceTooSmall(t *testing.T) {
 }
 
 func TestTritsSliceValid(t *testing.T) {
-	max := LenTrits(bytes10)
+	max := LenTrits(len(bytes10))
 
 	if max != 10 {
 		t.Fatal(max)
@@ -97,7 +97,7 @@ func TestTritsSliceValid(t *testing.T) {
 
 func TestTritsMaliciousBytes(t *testing.T) {
 	var buf = make([]byte, 10)
-	var max = LenTrits(buf)
+	var max = LenTrits(len(buf))
 	var tbuf = make([]int8, max)
 
 	for i := 0; i < 1000; i++ {
@@ -125,7 +125,7 @@ func TestBytes(t *testing.T) {
 	// Must be a multiple of tritsPerByte
 	var b = make([]int8, len(trits10))
 
-	if x := LenBytes(trits10); x != 2 {
+	if x := LenBytes(len(trits10)); x != 2 {
 		t.Fatal(x)
 	}
 

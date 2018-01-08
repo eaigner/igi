@@ -4,7 +4,7 @@ import (
 	"log"
 	"net"
 
-	"github.com/eaigner/igi/trinary"
+	"github.com/eaigner/igi/msg"
 )
 
 type UDPNeighbor struct {
@@ -47,22 +47,24 @@ func (udp *UDPNeighbor) Close() {
 
 func (udp *UDPNeighbor) read(conn *net.UDPConn) {
 	var buf [1024 * 10]byte
-	var t trinary.Trits
-
 	for {
 		n, err := conn.Read(buf[:])
 		if err != nil {
 			udp.logger.Printf("error reading UDP packet: %v", err)
 			break
 		} else {
-			// TODO: remove log and handle trytes
-			if trinary.BytesToTrits(buf[:n], &t) > 0 {
-				udp.logger.Printf("read trytes UDP packet: len=%v, %s", t.Len(), t.Trytes())
-			} else {
-				udp.logger.Printf("read raw UDP packet: len=%v, %x", n, buf[:n])
-			}
+			udp.handleMessage(buf[:n])
 		}
 	}
 	udp.logger.Printf("udp server closed")
 	udp.done <- true
+}
+
+func (udp *UDPNeighbor) handleMessage(b []byte) {
+	m, err := msg.ParseBytes(b)
+	if err != nil {
+		udp.logger.Printf("error parsing message: %v", err)
+	} else {
+		udp.logger.Println(m.Debug())
+	}
 }

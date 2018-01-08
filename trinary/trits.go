@@ -149,6 +149,15 @@ func Trytes(t []int8) (string, error) {
 	return string(v), nil
 }
 
+// Int64 converts trits to an int64 value.
+func Int64(t []int8) int64 {
+	var v int64 = 0
+	for i := len(t) - 1; i >= 0; i-- {
+		v = v*int64(tritRadix) + int64(t[i])
+	}
+	return v
+}
+
 // Equals compares two trit buffers.
 func Equals(t1 []int8, t2 []int8) bool {
 	if len(t1) != len(t2) {

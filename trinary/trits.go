@@ -1,12 +1,12 @@
 package trinary
 
 const (
-	tryteAlphabet = "9ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	tritsPerByte  = 5
-	tritsPerTryte = 3
-	tritRadix     = 3
-	maxTritValue  = (tritRadix - 1) / 2
-	minTritValue  = -maxTritValue
+	tryteAlphabet      = "9ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	tritsPerByte       = 5
+	tritsPerTryte      = 3
+	tritRadix     int8 = 3
+	maxTritValue  int8 = (tritRadix - 1) / 2
+	minTritValue  int8 = -maxTritValue
 )
 
 var (
@@ -112,7 +112,7 @@ func Bytes(dst []byte, src []int8) int {
 			j0 = tritsPerByte
 		}
 		for j := j0 - 1; j >= 0; j-- {
-			v = v*int8(tritRadix) + src[i*tritsPerByte+j]
+			v = v*tritRadix + src[i*tritsPerByte+j]
 		}
 		dst[i] = byte(v)
 	}

@@ -48,19 +48,21 @@ func (udp *UDPNeighbor) Close() {
 func (udp *UDPNeighbor) read(conn *net.UDPConn) {
 	var buf [1024 * 10]byte
 	for {
-		n, err := conn.Read(buf[:])
+		n, addr, err := conn.ReadFromUDP(buf[:])
 		if err != nil {
 			udp.logger.Printf("error reading UDP packet: %v", err)
 			break
 		} else {
-			udp.handleMessage(buf[:n])
+			udp.handleMessage(buf[:n], addr)
 		}
 	}
 	udp.logger.Printf("udp server closed")
 	udp.done <- true
 }
 
-func (udp *UDPNeighbor) handleMessage(b []byte) {
+func (udp *UDPNeighbor) handleMessage(b []byte, addr *net.UDPAddr) {
+	udp.logger.Printf("message from UDP neighbor: %v", addr)
+
 	m, err := msg.ParseUdpBytes(b)
 	if err != nil {
 		udp.logger.Printf("error parsing message: %v", err)

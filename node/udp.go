@@ -61,7 +61,7 @@ func (udp *UDPNeighbor) read(conn *net.UDPConn) {
 }
 
 func (udp *UDPNeighbor) handleMessage(b []byte) {
-	m, err := msg.ParseTxnBytes(b)
+	m, err := msg.ParseUdpBytes(b)
 	if err != nil {
 		udp.logger.Printf("error parsing message: %v", err)
 	} else {

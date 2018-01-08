@@ -1,6 +1,7 @@
 package msg
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 
@@ -45,8 +46,10 @@ const (
 )
 
 const (
-	hashSizeTrits  = 243
-	txnPacketBytes = 1650
+	hashSizeTrits    = 243
+	udpPacketBytes   = 1650
+	hashTrailerBytes = 46
+	txnPacketBytes   = udpPacketBytes - hashTrailerBytes
 )
 
 var (
@@ -69,24 +72,20 @@ type Message struct {
 	Ts                int64
 	CurrentIndex      int64
 	LastIndex         int64
+	Hash              []byte
 }
 
-func ParseTxnBytes(b []byte) (*Message, error) {
-	if len(b) != txnPacketBytes {
+func ParseUdpBytes(b []byte) (*Message, error) {
+	if len(b) != udpPacketBytes {
 		return nil, errMessageTooShort
 	}
+
 	t := make([]int8, trinary.LenTrits(len(b)))
 	_, err := trinary.Trits(t, b)
 	if err != nil {
 		return nil, err
 	}
-	return ParseTxnTrits(t)
-}
 
-func ParseTxnTrits(t []int8) (*Message, error) {
-	if len(t) != trinary.LenTrits(txnPacketBytes) {
-		return nil, errMessageTooShort
-	}
 	m := new(Message)
 	m.Raw = t
 	m.Address = chunk(t, addressTrinaryOffset, addressTrinarySize)
@@ -103,12 +102,13 @@ func ParseTxnTrits(t []int8) (*Message, error) {
 	m.Ts = chunkInt64(t, timestampTrinaryOffset, timestampTrinarySize)
 	m.CurrentIndex = chunkInt64(t, currentIndexTrinaryOffset, currentIndexTrinarySize)
 	m.LastIndex = chunkInt64(t, lastIndexTrinaryOffset, lastIndexTrinarySize)
+	m.Hash = b[txnPacketBytes:] // TODO: length is 46, find out why IRI Hash byte buffer is defined as SIZE_IN_BYTES=49
 
 	return m, nil
 }
 
 func (m *Message) Debug() string {
-	return fmt.Sprintf("<Message address=%s trunk=%s branch=%s bundle=%s tag=%s otag=%s nonce=%s ats=%v atsh=%v atsl=%v value=%v ts=%v index=%v lindex=%v>",
+	return fmt.Sprintf("<Message address=%s trunk=%s branch=%s bundle=%s tag=%s otag=%s nonce=%s ats=%v atsh=%v atsl=%v value=%v ts=%v index=%v lindex=%v hash=%s>",
 		trytes(m.Address),
 		trytes(m.Trunk),
 		trytes(m.Branch),
@@ -123,6 +123,7 @@ func (m *Message) Debug() string {
 		m.Ts,
 		m.CurrentIndex,
 		m.LastIndex,
+		hex.EncodeToString(m.Hash),
 	)
 }
 

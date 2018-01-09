@@ -1,13 +1,12 @@
 package hash
 
 const (
-	CurlP27        = 27
-	CurlP81        = 81
-	CurlHashLength = 243
+	CurlP27 = 27
+	CurlP81 = 81
 )
 
 const (
-	curlStateLength = 3 * CurlHashLength
+	curlStateLength = 3 * HashLengthTrits
 )
 
 var (
@@ -31,8 +30,8 @@ func (c *Curl) Absorb(v []int8) {
 	var n int
 	for len(in) > 0 {
 		n = len(in)
-		if n > CurlHashLength {
-			n = CurlHashLength
+		if n > HashLengthTrits {
+			n = HashLengthTrits
 		}
 		for i, v := range in[:n] {
 			c.state[i] = int(v)
@@ -47,8 +46,8 @@ func (c *Curl) Squeeze(v []int8) {
 	var n int
 	for len(in) > 0 {
 		n = len(in)
-		if n > CurlHashLength {
-			n = CurlHashLength
+		if n > HashLengthTrits {
+			n = HashLengthTrits
 		}
 		for i, v := range c.state[:n] {
 			in[i] = int8(v)

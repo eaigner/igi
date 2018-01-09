@@ -7,7 +7,7 @@ const (
 )
 
 const (
-	curlStateLength = 3 * CurlHashLength // TODO(era): use CurlHashLength instead?
+	curlStateLength = 3 * CurlHashLength
 )
 
 var (
@@ -62,7 +62,7 @@ func (c *Curl) transform() {
 	var i, j int
 	for round := 0; round < c.mode; round++ {
 		c.scratch = c.state // copy
-		for k := 0; k < len(c.state); k++ {
+		for k := 0; k < curlStateLength; k++ {
 			j = i
 			if i < 365 {
 				i += 364

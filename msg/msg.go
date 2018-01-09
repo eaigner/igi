@@ -58,23 +58,23 @@ var (
 )
 
 type Message struct {
-	Digest            [sha256.Size]byte // SHA-256 digest of the transaction packet, excluding trailing bytes
-	Raw               []int8
-	Address           []int8
-	Trunk             []int8
-	Branch            []int8
-	Bundle            []int8
-	Tag               []int8
+	Digest            [sha256.Size]byte // SHA-256 digest of the transaction packet, excluding trailer bytes
+	Raw               []int8            // Raw transaction trits
+	Address           []int8            // Address trits
+	Trunk             []int8            // Trunk address trits
+	Branch            []int8            // Branch address trits
+	Bundle            []int8            // Bundle address trits
+	Tag               []int8            // Tag
 	ObsoleteTag       []int8
-	Nonce             []int8
-	AttachmentTs      int64
-	AttachmentTsUpper int64
-	AttachmentTsLower int64
-	Value             int64
+	Nonce             []int8 // Nonce
+	AttachmentTs      int64  // Attachment timestamp
+	AttachmentTsUpper int64  // Attachment timestamp upper bound
+	AttachmentTsLower int64  // Attachment timestamp lower bound
+	Value             int64  // Transaction value
 	Ts                int64
 	CurrentIndex      int64
 	LastIndex         int64
-	Trailer           []byte
+	Trailer           []byte // UDP packet trailer
 }
 
 func ParseUdpBytes(b []byte) (*Message, error) {

@@ -56,24 +56,3 @@ func BenchmarkCurlP81(b *testing.B) {
 		curl.Squeeze(out[:])
 	}
 }
-
-func BenchmarkInt8(b *testing.B) {
-	var in [8019]int8
-
-	for n := 0; n < b.N; n++ {
-		for i := 0; i < len(in); i++ {
-			in[i] *= 3
-		}
-	}
-}
-
-func BenchmarkInt(b *testing.B) {
-	var in [8019]int
-
-	for n := 0; n < b.N; n++ {
-		for i := 0; i < len(in); i++ {
-			in[i] *= 3
-			in[i] = in[i] << 2
-		}
-	}
-}

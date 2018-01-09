@@ -1,4 +1,4 @@
-package msg
+package node
 
 import (
 	"crypto/sha256"

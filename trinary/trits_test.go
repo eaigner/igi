@@ -2,6 +2,7 @@ package trinary
 
 import (
 	"crypto/rand"
+	"reflect"
 	"testing"
 )
 
@@ -56,6 +57,21 @@ func TestTrytes(t *testing.T) {
 	}
 	if s != expect {
 		t.Fatalf("is=%s, want=%s", s, expect)
+	}
+
+	// Convert back to trits
+	out := make([]int8, LenTritsFromTrytes(len(s)))
+	n, err := TritsFromTrytes(out, s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != len(s)*3 {
+		t.Fatal(n)
+	}
+	if !reflect.DeepEqual(out, in) {
+		t.Logf("in=%v", in)
+		t.Logf("out=%v", out)
+		t.FailNow()
 	}
 }
 

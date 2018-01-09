@@ -12,7 +12,9 @@ const (
 )
 
 var (
-	bytesToTrits [243][tritsPerByte]int8
+	tryteRuneIndex = make(map[rune]int, len(tryteAlphabet))
+	bytesToTrits   [243][tritsPerByte]int8
+	trytesToTrits  [27][tritsPerTryte]int8
 )
 
 var (
@@ -23,8 +25,15 @@ var (
 func init() {
 	var trits [tritsPerByte]int8
 	for i := 0; i < 243; i++ {
-		copy(bytesToTrits[i][:], trits[:])
+		copy(bytesToTrits[i][:], trits[:tritsPerByte])
 		incrementTrits(trits[:], tritsPerByte)
+	}
+	for i := 0; i < 27; i++ {
+		copy(trytesToTrits[i][:], trits[:tritsPerTryte])
+		incrementTrits(trits[:], tritsPerTryte)
+	}
+	for i, c := range tryteAlphabet {
+		tryteRuneIndex[c] = i
 	}
 }
 
@@ -90,6 +99,21 @@ func Trits(dst []int8, src []byte) (int, error) {
 	return n, nil
 }
 
+// TritsFromTrytes converts a tryte string to trits.
+// dst must at least be LenTritsFromTrytes(src) long.
+// Returns the number of trits written
+func TritsFromTrytes(dst []int8, src string) (int, error) {
+	n := LenTritsFromTrytes(len(src))
+	if len(dst) < n {
+		return 0, errBufferTooSmall
+	}
+	for i, c := range src {
+		j := i * tritsPerTryte
+		copy(dst[j:j+tritsPerTryte], trytesToTrits[tryteRuneIndex[c]][:])
+	}
+	return n, nil
+}
+
 func validTrit(v int8) bool {
 	return v >= -1 && v <= 1
 }
@@ -102,6 +126,11 @@ func LenBytes(n int) int {
 // LenTrits returns the number of trits for n bytes
 func LenTrits(n int) int {
 	return n * tritsPerByte
+}
+
+// LenTritsFromTrytes returns the number of trits for n trytes
+func LenTritsFromTrytes(n int) int {
+	return n * tritsPerTryte
 }
 
 // Bytes converts a trit to a byte slice.

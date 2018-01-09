@@ -1,6 +1,7 @@
 package msg
 
 import (
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -57,6 +58,7 @@ var (
 )
 
 type Message struct {
+	Digest            [sha256.Size]byte // SHA-256 digest of the transaction packet, excluding trailing bytes
 	Raw               []int8
 	Address           []int8
 	Trunk             []int8
@@ -72,7 +74,7 @@ type Message struct {
 	Ts                int64
 	CurrentIndex      int64
 	LastIndex         int64
-	Hash              []byte
+	Trailer           []byte
 }
 
 func ParseUdpBytes(b []byte) (*Message, error) {
@@ -86,7 +88,10 @@ func ParseUdpBytes(b []byte) (*Message, error) {
 		return nil, err
 	}
 
+	digest := sha256.Sum256(b[:txnPacketBytes])
+
 	m := new(Message)
+	m.Digest = digest
 	m.Raw = t
 	m.Address = chunk(t, addressTrinaryOffset, addressTrinarySize)
 	m.Trunk = chunk(t, trunkTransactionTrinaryOffset, trunkTransactionTrinarySize)
@@ -102,13 +107,13 @@ func ParseUdpBytes(b []byte) (*Message, error) {
 	m.Ts = chunkInt64(t, timestampTrinaryOffset, timestampTrinarySize)
 	m.CurrentIndex = chunkInt64(t, currentIndexTrinaryOffset, currentIndexTrinarySize)
 	m.LastIndex = chunkInt64(t, lastIndexTrinaryOffset, lastIndexTrinarySize)
-	m.Hash = b[txnPacketBytes:] // TODO: length is 46, find out why IRI Hash byte buffer is defined as SIZE_IN_BYTES=49
+	m.Trailer = b[txnPacketBytes:] // TODO: length is 46, find out why IRI Hash byte buffer is defined as SIZE_IN_BYTES=49
 
 	return m, nil
 }
 
 func (m *Message) Debug() string {
-	return fmt.Sprintf("<Message address=%s trunk=%s branch=%s bundle=%s tag=%s otag=%s nonce=%s ats=%v atsh=%v atsl=%v value=%v ts=%v index=%v lindex=%v hash=%s>",
+	return fmt.Sprintf("<Message address=%s trunk=%s branch=%s bundle=%s tag=%s otag=%s nonce=%s ats=%v atsh=%v atsl=%v value=%v ts=%v index=%v lindex=%v trailer=%s digest=%s>",
 		trytes(m.Address),
 		trytes(m.Trunk),
 		trytes(m.Branch),
@@ -123,7 +128,8 @@ func (m *Message) Debug() string {
 		m.Ts,
 		m.CurrentIndex,
 		m.LastIndex,
-		hex.EncodeToString(m.Hash),
+		hex.EncodeToString(m.Trailer),
+		hex.EncodeToString(m.Digest[:]),
 	)
 }
 

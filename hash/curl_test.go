@@ -13,7 +13,7 @@ const (
 
 func TestCurlP81(t *testing.T) {
 	var in [10 * 1024]int8
-	var out [HashLengthTrits]int8
+	var out [SizeTrits]int8
 	var curl Curl
 	var sponge Sponge = &curl // to test interface conformance
 
@@ -42,7 +42,7 @@ func TestCurlP81(t *testing.T) {
 
 func BenchmarkCurlP81(b *testing.B) {
 	var in [8019]int8
-	var out [HashLengthTrits]int8
+	var out [SizeTrits]int8
 	var curl Curl
 
 	n, err := trinary.TritsFromTrytes(in[:], trytes)

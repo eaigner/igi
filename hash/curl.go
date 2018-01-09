@@ -6,7 +6,7 @@ const (
 )
 
 const (
-	curlStateLength = 3 * HashLengthTrits
+	curlStateLength = 3 * SizeTrits
 )
 
 var (
@@ -30,8 +30,8 @@ func (c *Curl) Absorb(v []int8) {
 	var n int
 	for len(in) > 0 {
 		n = len(in)
-		if n > HashLengthTrits {
-			n = HashLengthTrits
+		if n > SizeTrits {
+			n = SizeTrits
 		}
 		for i, v := range in[:n] {
 			c.state[i] = int(v)
@@ -46,8 +46,8 @@ func (c *Curl) Squeeze(v []int8) {
 	var n int
 	for len(in) > 0 {
 		n = len(in)
-		if n > HashLengthTrits {
-			n = HashLengthTrits
+		if n > SizeTrits {
+			n = SizeTrits
 		}
 		for i, v := range c.state[:n] {
 			in[i] = int8(v)

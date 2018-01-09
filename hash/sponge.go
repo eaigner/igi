@@ -7,8 +7,13 @@ import (
 )
 
 const (
-	HashLengthTrits = 243
-	HashLengthBytes = 49
+	SizeTrits = 243
+	SizeBytes = 49
+)
+
+var (
+	NullBytes = [SizeBytes]byte{}
+	NullTrits = [SizeTrits]int8{}
 )
 
 var (
@@ -22,12 +27,12 @@ type Sponge interface {
 }
 
 // SqueezeBytes calls Squeeze and writes the result as bytes to b.
-// b must be HashLengthBytes long.
+// b must be SizeBytes long.
 func SqueezeBytes(s Sponge, b []byte) (int, error) {
-	if len(b) < HashLengthBytes {
+	if len(b) < SizeBytes {
 		return 0, errBufferTooSmall
 	}
-	var t [HashLengthTrits]int8
+	var t [SizeTrits]int8
 
 	s.Squeeze(t[:])
 

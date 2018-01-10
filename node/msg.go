@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/eaigner/igi/hash"
 	"github.com/eaigner/igi/trinary"
 )
 
@@ -47,14 +48,19 @@ const (
 )
 
 const (
-	hashSizeTrits    = 243
-	udpPacketBytes   = 1650
-	hashTrailerBytes = 46
-	txnPacketBytes   = udpPacketBytes - hashTrailerBytes
+	hashSizeTrits       = 243
+	udpPacketBytes      = 1650
+	hashTrailerBytes    = 46
+	txnPacketBytes      = udpPacketBytes - hashTrailerBytes
+	hashesInvalidBefore = 1508760000
 )
 
 var (
-	errMessageTooShort = errors.New("message too short")
+	errMessageTooShort    = errors.New("message too short")
+	errInvalidTxTimestamp = errors.New("invalid transaction timestamp")
+	errInvalidTxValue     = errors.New("invalid transaction value")
+	errInvalidTxHash      = errors.New("invalid transaction hash")
+	errInvalidTxAddress   = errors.New("invalid transaction address")
 )
 
 type Message struct {
@@ -67,6 +73,7 @@ type Message struct {
 	Tag               []int8            // Tag
 	ObsoleteTag       []int8
 	Nonce             []int8 // Nonce
+	ValueTrailer      []int8 // Trits after usable value
 	AttachmentTs      int64  // Attachment timestamp
 	AttachmentTsUpper int64  // Attachment timestamp upper bound
 	AttachmentTsLower int64  // Attachment timestamp lower bound
@@ -82,8 +89,8 @@ func ParseUdpBytes(b []byte) (*Message, error) {
 		return nil, errMessageTooShort
 	}
 
-	t := make([]int8, trinary.LenTrits(len(b)))
-	_, err := trinary.Trits(t, b)
+	t := make([]int8, trinary.LenTrits(len(b[:txnPacketBytes])))
+	_, err := trinary.Trits(t, b[:txnPacketBytes])
 	if err != nil {
 		return nil, err
 	}
@@ -100,6 +107,7 @@ func ParseUdpBytes(b []byte) (*Message, error) {
 	m.Tag = chunk(t, tagTrinaryOffset, tagTrinarySize)
 	m.ObsoleteTag = chunk(t, obsoleteTagTrinaryOffset, obsoleteTagTrinarySize)
 	m.Nonce = chunk(t, nonceTrinaryOffset, nonceTrinarySize)
+	m.ValueTrailer = chunk(t, valueTrinaryOffset+valueUsableTrinarySize, valueTrinarySize-valueUsableTrinarySize)
 	m.AttachmentTs = chunkInt64(t, attachmentTimestampTrinaryOffset, attachmentTimestampTrinarySize)
 	m.AttachmentTsUpper = chunkInt64(t, attachmentTimestampUpperBoundTrinaryOffset, attachmentTimestampUpperBoundTrinarySize)
 	m.AttachmentTsLower = chunkInt64(t, attachmentTimestampLowerBoundTrinaryOffset, attachmentTimestampLowerBoundTrinarySize)
@@ -110,6 +118,73 @@ func ParseUdpBytes(b []byte) (*Message, error) {
 	m.Trailer = b[txnPacketBytes:] // TODO: length is 46, find out why IRI Hash byte buffer is defined as SIZE_IN_BYTES=49
 
 	return m, nil
+}
+
+func (m Message) Validate(minWeightMag int) error {
+	var curl hash.Curl
+	var txHash [hash.SizeTrits]int8
+
+	curl.Reset(hash.CurlP27)
+	curl.Absorb(m.Raw)
+	curl.Squeeze(txHash[:])
+
+	// Check weight magnitude
+	if hash.WeightMagnitude(txHash[:]) < minWeightMag {
+		return errInvalidTxHash
+	}
+
+	// Every non-zero hash before 'Mon 23rd Oct 2017 12:00:00 PM' is invalid.
+	// Taken from IRI.
+	if m.Ts < hashesInvalidBefore && hash.ZeroInt8(txHash[:]) {
+		return errInvalidTxTimestamp
+	}
+
+	// Check if trits after value are zero.
+	for _, v := range m.ValueTrailer {
+		if v != 0 {
+			return errInvalidTxValue
+		}
+	}
+
+	// Check if last address trit is zero.
+	if m.Value != 0 && len(m.Address) == hash.SizeTrits && m.Address[hash.SizeTrits-1] != 0 {
+		return errInvalidTxAddress
+	}
+
+	return nil
+}
+
+func (m Message) AddressTrytes() string {
+	return toTryte(m.Address)
+}
+
+func (m Message) BundleTrytes() string {
+	return toTryte(m.Bundle)
+}
+
+func (m Message) TrunkTrytes() string {
+	return toTryte(m.Trunk)
+}
+
+func (m Message) BranchTrytes() string {
+	return toTryte(m.Branch)
+}
+
+func (m Message) ObsoleteTagTrytes() string {
+	return toTryte(m.ObsoleteTag)
+}
+
+func (m Message) TagTrytes() string {
+	return toTryte(m.Tag)
+}
+
+func (m Message) NonceTrytes() string {
+	return toTryte(m.Nonce)
+}
+
+func toTryte(t []int8) string {
+	s, _ := trinary.Trytes(t) // ignore err
+	return s
 }
 
 func (m *Message) Debug() string {

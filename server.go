@@ -13,13 +13,13 @@ import (
 var conf gonode.Conf
 
 func init() {
-	flag.StringVar(&conf.HttpHost, "http", ":15100", "http server address")
-	flag.StringVar(&conf.UdpHost, "udp", ":15200", "udp socket address")
-	flag.StringVar(&conf.TcpHost, "tcp", ":15300", "tcp socket address")
+	flag.StringVar(&conf.HttpHost, "p", ":15100", "http server address")
+	flag.StringVar(&conf.UdpHost, "u", ":15200", "udp socket address")
+	flag.StringVar(&conf.TcpHost, "y", ":15300", "tcp socket address")
 	flag.BoolVar(&conf.Debug, "debug", false, "turn on debug mode")
 	flag.BoolVar(&conf.Testnet, "testnet", false, "use testnet")
 	flag.Var(&conf.Neighbors, "n", "single neighbor node URL, flag can be used multiple times")
-	flag.IntVar(&conf.MinWeightMagnitude, "mwm", 14, "min weight magnitude")
+	flag.IntVar(&conf.MinWeightMagnitude, "w", 14, "min weight magnitude")
 	flag.Parse()
 }
 

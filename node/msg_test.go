@@ -61,7 +61,7 @@ func msgBytes() []byte {
 
 func TestParseUdpBytes(t *testing.T) {
 	b := msgBytes()
-	msg, err := ParseUdpBytes(b)
+	msg, err := ParseUdpBytes(b, 13)
 
 	// TODO: use message with all fields filled, this is suboptimal with zero values
 
@@ -110,8 +110,4 @@ func TestParseUdpBytes(t *testing.T) {
 	if v := msg.AttachmentTsUpper; v != 12 {
 		t.Fatal(v)
 	}
-}
-
-func TestValidate(t *testing.T) {
-	// TODO(era): implement
 }

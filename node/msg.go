@@ -84,7 +84,7 @@ type Message struct {
 	Trailer           []byte // UDP packet trailer
 }
 
-func ParseUdpBytes(b []byte) (*Message, error) {
+func ParseUdpBytes(b []byte, minWeightMag int) (*Message, error) {
 	if len(b) != udpPacketBytes {
 		return nil, errMessageTooShort
 	}
@@ -117,10 +117,14 @@ func ParseUdpBytes(b []byte) (*Message, error) {
 	m.LastIndex = chunkInt64(t, lastIndexTrinaryOffset, lastIndexTrinarySize)
 	m.Trailer = b[txnPacketBytes:] // TODO: length is 46, find out why IRI Hash byte buffer is defined as SIZE_IN_BYTES=49
 
+	if err := m.validate(minWeightMag); err != nil {
+		return nil, err
+	}
+
 	return m, nil
 }
 
-func (m Message) Validate(minWeightMag int) error {
+func (m Message) validate(minWeightMag int) error {
 	var curl hash.Curl
 	var txHash [hash.SizeTrits]int8
 

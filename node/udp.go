@@ -63,16 +63,14 @@ func (udp *UDPNeighbor) read(conn *net.UDPConn) {
 func (udp *UDPNeighbor) handleMessage(b []byte, addr *net.UDPAddr) {
 	udp.logger.Printf("message from UDP neighbor: %v", addr)
 
-	m, err := ParseUdpBytes(b)
+	msg, err := ParseUdpBytes(b, udp.minWeightMag)
 	if err != nil {
 		udp.logger.Printf("error parsing message: %v", err)
-	} else {
-		udp.logger.Println(m.Debug())
+		return // drop
 	}
+	go udp.sendReply(msg.Trailer, addr)
+}
 
-	if err := m.Validate(udp.minWeightMag); err != nil {
-		udp.logger.Printf("message invalid: %s\n", err)
-	} else {
-		udp.logger.Println("message VALID")
-	}
+func (udp *UDPNeighbor) sendReply(hashToRequest []byte, sender *net.UDPAddr) {
+	// TODO: impl
 }

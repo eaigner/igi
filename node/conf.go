@@ -3,12 +3,13 @@ package node
 import "strings"
 
 type Conf struct {
-	HttpHost  string
-	UdpHost   string
-	TcpHost   string
-	Debug     bool
-	Testnet   bool
-	Neighbors MultiString
+	HttpHost           string
+	UdpHost            string
+	TcpHost            string
+	Debug              bool
+	Testnet            bool
+	Neighbors          MultiString
+	MinWeightMagnitude int
 }
 
 type MultiString []string

@@ -6,17 +6,19 @@ import (
 )
 
 type UDPNeighbor struct {
-	host   string
-	done   chan bool
-	logger *log.Logger
-	conn   *net.UDPConn
+	host         string
+	done         chan bool
+	minWeightMag int
+	logger       *log.Logger
+	conn         *net.UDPConn
 }
 
-func NewUDPNeighbor(host string, logger *log.Logger) *UDPNeighbor {
+func NewUDPNeighbor(host string, minWeightMag int, logger *log.Logger) *UDPNeighbor {
 	return &UDPNeighbor{
-		host:   host,
-		done:   make(chan bool, 1),
-		logger: logger,
+		host:         host,
+		minWeightMag: minWeightMag,
+		done:         make(chan bool, 1),
+		logger:       logger,
 	}
 }
 
@@ -66,5 +68,11 @@ func (udp *UDPNeighbor) handleMessage(b []byte, addr *net.UDPAddr) {
 		udp.logger.Printf("error parsing message: %v", err)
 	} else {
 		udp.logger.Println(m.Debug())
+	}
+
+	if err := m.Validate(udp.minWeightMag); err != nil {
+		udp.logger.Printf("message invalid: %s\n", err)
+	} else {
+		udp.logger.Println("message VALID")
 	}
 }

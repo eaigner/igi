@@ -12,7 +12,7 @@ func New(conf Conf, logger *log.Logger) *Node {
 	return &Node{
 		conf:   conf,
 		logger: logger,
-		udp:    NewUDPNeighbor(conf.UdpHost, logger),
+		udp:    NewUDPNeighbor(conf.UdpHost, conf.MinWeightMagnitude, logger),
 	}
 }
 

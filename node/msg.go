@@ -89,8 +89,8 @@ func ParseUdpBytes(b []byte) (*Message, error) {
 		return nil, errMessageTooShort
 	}
 
-	t := make([]int8, trinary.LenTrits(len(b[:txnPacketBytes])))
-	_, err := trinary.Trits(t, b[:txnPacketBytes])
+	t := make([]int8, trinary.LenTrits(len(b)))
+	_, err := trinary.Trits(t, b)
 	if err != nil {
 		return nil, err
 	}
@@ -124,8 +124,8 @@ func (m Message) Validate(minWeightMag int) error {
 	var curl hash.Curl
 	var txHash [hash.SizeTrits]int8
 
-	curl.Reset(hash.CurlP27)
-	curl.Absorb(m.Raw)
+	curl.Reset(hash.CurlP81)
+	curl.Absorb(m.Raw[:trinarySize])
 	curl.Squeeze(txHash[:])
 
 	// Check weight magnitude

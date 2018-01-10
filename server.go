@@ -19,6 +19,7 @@ func init() {
 	flag.BoolVar(&conf.Debug, "debug", false, "turn on debug mode")
 	flag.BoolVar(&conf.Testnet, "testnet", false, "use testnet")
 	flag.Var(&conf.Neighbors, "n", "single neighbor node URL, flag can be used multiple times")
+	flag.IntVar(&conf.MinWeightMagnitude, "mwm", 14, "min weight magnitude")
 	flag.Parse()
 }
 

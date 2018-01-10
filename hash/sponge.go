@@ -12,11 +12,6 @@ const (
 )
 
 var (
-	NullBytes = [SizeBytes]byte{}
-	NullTrits = [SizeTrits]int8{}
-)
-
-var (
 	errBufferTooSmall = errors.New("buffer too small")
 )
 

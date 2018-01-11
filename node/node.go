@@ -5,14 +5,14 @@ import "log"
 type Node struct {
 	conf   Conf
 	logger *log.Logger
-	udp    *UDPNeighbor
+	udp    *UDP
 }
 
 func New(conf Conf, logger *log.Logger) *Node {
 	return &Node{
 		conf:   conf,
 		logger: logger,
-		udp:    NewUDPNeighbor(conf.UdpHost, conf.MinWeightMagnitude, logger),
+		udp:    NewUDP(conf.UdpHost, conf.MinWeightMagnitude, logger),
 	}
 }
 

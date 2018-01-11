@@ -6,11 +6,6 @@ import (
 	"github.com/eaigner/igi/trinary"
 )
 
-const (
-	SizeTrits = 243
-	SizeBytes = 49
-)
-
 var (
 	errBufferTooSmall = errors.New("buffer too small")
 )

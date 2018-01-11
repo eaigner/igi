@@ -64,7 +64,7 @@ func Validate(a []int8) bool {
 func Trits(dst []int8, src []byte) (int, error) {
 	n := len(src) * tritsPerByte
 
-	if n < len(dst) {
+	if len(dst) < n {
 		return 0, errBufferTooSmall
 	}
 

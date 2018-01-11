@@ -82,6 +82,9 @@ type Message struct {
 	CurrentIndex      int64
 	LastIndex         int64
 	Trailer           []byte // UDP packet trailer
+
+	txHash      []int8
+	trailerHash []int8
 }
 
 func ParseUdpBytes(b []byte, minWeightMag int) (*Message, error) {
@@ -115,22 +118,42 @@ func ParseUdpBytes(b []byte, minWeightMag int) (*Message, error) {
 	m.Ts = chunkInt64(t, timestampTrinaryOffset, timestampTrinarySize)
 	m.CurrentIndex = chunkInt64(t, currentIndexTrinaryOffset, currentIndexTrinarySize)
 	m.LastIndex = chunkInt64(t, lastIndexTrinaryOffset, lastIndexTrinarySize)
-	m.Trailer = b[txnPacketBytes:] // TODO: length is 46, find out why IRI Hash byte buffer is defined as SIZE_IN_BYTES=49
-
-	if err := m.validate(minWeightMag); err != nil {
-		return nil, err
-	}
+	m.Trailer = b[txnPacketBytes:]
 
 	return m, nil
 }
 
-func (m Message) validate(minWeightMag int) error {
-	var curl hash.Curl
-	var txHash [hash.SizeTrits]int8
+func (m *Message) TxHash() []int8 {
+	if len(m.txHash) > 0 {
+		return m.txHash
+	}
 
+	m.txHash = make([]int8, hash.SizeTrits)
+
+	var curl hash.Curl
 	curl.Reset(hash.CurlP81)
 	curl.Absorb(m.Raw[:trinarySize])
-	curl.Squeeze(txHash[:])
+	curl.Squeeze(m.txHash)
+
+	return m.txHash
+}
+
+func (m *Message) TrailerHash() []int8 {
+	if len(m.trailerHash) > 0 {
+		return m.trailerHash
+	}
+
+	m.trailerHash = make([]int8, hash.SizeTrits)
+
+	_, err := trinary.Trits(m.trailerHash, m.Trailer)
+	if err != nil {
+		return nil
+	}
+	return m.trailerHash
+}
+
+func (m Message) Validate(minWeightMag int) error {
+	txHash := m.TxHash()
 
 	// Check weight magnitude
 	if hash.WeightMagnitude(txHash[:]) < minWeightMag {

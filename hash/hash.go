@@ -2,6 +2,11 @@ package hash
 
 import "bytes"
 
+const (
+	SizeBytes = 49 // a hash would only require 46 bytes, but curl needs more to compute
+	SizeTrits = 243
+)
+
 var (
 	nullBytes = make([]byte, SizeBytes)
 )

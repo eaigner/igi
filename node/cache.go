@@ -24,7 +24,7 @@ type entry struct {
 }
 
 // New returns a new cache with the provided maximum items.
-func New(maxEntries int) *Cache {
+func NewCache(maxEntries int) *Cache {
 	return &Cache{
 		maxEntries: maxEntries,
 		ll:         list.New(),

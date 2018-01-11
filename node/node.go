@@ -1,14 +1,12 @@
 package node
 
-import "log"
-
 type Node struct {
 	conf   Conf
-	logger *log.Logger
+	logger Logger
 	udp    *UDP
 }
 
-func New(conf Conf, logger *log.Logger) *Node {
+func New(conf Conf, logger Logger) *Node {
 	return &Node{
 		conf:   conf,
 		logger: logger,

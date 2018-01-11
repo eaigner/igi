@@ -1,7 +1,6 @@
 package node
 
 import (
-	"log"
 	"net"
 
 	"github.com/eaigner/igi/trinary"
@@ -11,12 +10,12 @@ type UDP struct {
 	host         string
 	done         chan bool
 	minWeightMag int
-	logger       *log.Logger
+	logger       Logger
 	conn         *net.UDPConn
 	txCache      *Cache
 }
 
-func NewUDP(host string, minWeightMag int, logger *log.Logger) *UDP {
+func NewUDP(host string, minWeightMag int, logger Logger) *UDP {
 	return &UDP{
 		host:         host,
 		minWeightMag: minWeightMag,
@@ -98,10 +97,10 @@ func (udp *UDP) handleMessage(b []byte, neighbor *net.UDPAddr) {
 
 func (udp *UDP) addToReceiveQueue(msg *Message, neighbor *net.UDPAddr) {
 	// TODO: implement addReceivedDataToReceiveQueue
-	println("addToReceiveQueue")
+	udp.logger.Println("addToReceiveQueue")
 }
 
 func (udp *UDP) addToReplyQueue(requestedHash []int8, sender *net.UDPAddr) {
 	// TODO: implement addReceivedDataToReplyQueue
-	println("addToReplyQueue")
+	udp.logger.Println("addToReplyQueue")
 }

@@ -3,6 +3,7 @@ package node
 import (
 	"net"
 
+	"github.com/eaigner/igi/hash"
 	"github.com/eaigner/igi/trinary"
 )
 
@@ -13,6 +14,9 @@ type UDP struct {
 	logger       Logger
 	conn         *net.UDPConn
 	txCache      *Cache
+	receiveQueue *WeightQueue
+	replyQueue   *WeightQueue
+	closed       bool
 }
 
 func NewUDP(host string, minWeightMag int, logger Logger) *UDP {
@@ -22,6 +26,9 @@ func NewUDP(host string, minWeightMag int, logger Logger) *UDP {
 		done:         make(chan bool, 1),
 		logger:       logger,
 		txCache:      NewCache(1024),
+		receiveQueue: NewWeightQueue(1024),
+		replyQueue:   NewWeightQueue(1024),
+		closed:       false,
 	}
 }
 
@@ -38,6 +45,8 @@ func (udp *UDP) Listen() error {
 	udp.logger.Printf("listening on udp://%v", addr)
 	udp.conn = conn
 
+	go udp.replyLoop()
+	go udp.receiveLoop()
 	go udp.read(conn)
 
 	return nil
@@ -45,6 +54,7 @@ func (udp *UDP) Listen() error {
 
 func (udp *UDP) Close() {
 	udp.conn.Close()
+	udp.closed = true
 	<-udp.done
 }
 
@@ -61,6 +71,20 @@ func (udp *UDP) read(conn *net.UDPConn) {
 	}
 	udp.logger.Printf("udp server closed")
 	udp.done <- true
+}
+
+func (udp *UDP) replyLoop() {
+	for !udp.closed {
+		var _ = udp.replyQueue.Pop().(*replyItem)
+		// TODO: do something with item, implement "Node.replyToRequest"
+	}
+}
+
+func (udp *UDP) receiveLoop() {
+	for !udp.closed {
+		var _ = udp.receiveQueue.Pop().(*receiveItem)
+		// TODO: do something with item, implement "Node.processReceivedData"
+	}
 }
 
 func (udp *UDP) handleMessage(b []byte, neighbor *net.UDPAddr) {
@@ -81,7 +105,7 @@ func (udp *UDP) handleMessage(b []byte, neighbor *net.UDPAddr) {
 			return // drop
 		}
 		udp.txCache.Add(msg.Digest, msg.TxHash())
-		udp.addToReceiveQueue(msg, neighbor)
+		udp.receiveQueue.Push(&receiveItem{msg, neighbor}, hash.WeightMagnitude(msg.TxHash()))
 	}
 
 	// Check if the trailer hash is the same as the current message transaction hash.
@@ -92,15 +116,15 @@ func (udp *UDP) handleMessage(b []byte, neighbor *net.UDPAddr) {
 		requestedHash = make([]int8, len(requestedHash))
 	}
 
-	udp.addToReplyQueue(requestedHash, neighbor)
+	udp.replyQueue.Push(&replyItem{requestedHash, neighbor}, hash.WeightMagnitude(requestedHash))
 }
 
-func (udp *UDP) addToReceiveQueue(msg *Message, neighbor *net.UDPAddr) {
-	// TODO: implement addReceivedDataToReceiveQueue
-	udp.logger.Println("addToReceiveQueue")
+type receiveItem struct {
+	msg      *Message
+	neighbor *net.UDPAddr
 }
 
-func (udp *UDP) addToReplyQueue(requestedHash []int8, sender *net.UDPAddr) {
-	// TODO: implement addReceivedDataToReplyQueue
-	udp.logger.Println("addToReplyQueue")
+type replyItem struct {
+	requestedHash []int8
+	neighbor      *net.UDPAddr
 }

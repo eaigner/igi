@@ -1,10 +1,14 @@
 package node
 
-import "container/heap"
+import (
+	"container/heap"
+	"sync"
+)
 
 type WeightQueue struct {
-	q pQueue
-	c chan bool
+	q   pQueue
+	c   chan bool
+	mtx sync.Mutex
 }
 
 func NewWeightQueue(maxLen int) *WeightQueue {
@@ -15,17 +19,21 @@ func NewWeightQueue(maxLen int) *WeightQueue {
 }
 
 func (q *WeightQueue) Push(value interface{}, weight int) bool {
+	q.mtx.Lock()
 	heap.Push(&q.q, &pqItem{
 		value:    value,
 		priority: weight,
 	})
+	q.mtx.Unlock()
 	q.c <- true
 	return true
 }
 
 func (q *WeightQueue) Pop() interface{} {
 	<-q.c
+	q.mtx.Lock()
 	item := heap.Pop(&q.q).(*pqItem)
+	q.mtx.Unlock()
 	return item.value
 }
 

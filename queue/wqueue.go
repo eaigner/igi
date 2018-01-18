@@ -7,7 +7,7 @@ import (
 
 // WeightQueue implements a weighted priority queue.
 // In a high load regime, the network connection would be saturated and transactions with higher MWM
-// (minimum weight magnitude) would rise to the  top of the priority queue, so if you want your translation to propagate
+// (minimum weight magnitude) would rise to the top of the priority queue, so if you want your translation to propagate
 // faster in the network you would apply more PoW, hence setting priority based on MWM.
 type WeightQueue struct {
 	q   pQueue
@@ -15,6 +15,7 @@ type WeightQueue struct {
 	mtx sync.Mutex
 }
 
+// NewWeightQueue creates a new weighted queue. Items in the queue are ordered by weight (heaviest first).
 func NewWeightQueue(maxLen int) *WeightQueue {
 	return &WeightQueue{
 		q: make(pQueue, 0),
@@ -22,6 +23,8 @@ func NewWeightQueue(maxLen int) *WeightQueue {
 	}
 }
 
+// Push pushes a new weighted value to the queue. If the queue is full, this call blocks until the queue drops below
+// its own max length.
 func (q *WeightQueue) Push(value interface{}, weight int) bool {
 	q.mtx.Lock()
 	heap.Push(&q.q, &pqItem{
@@ -33,6 +36,7 @@ func (q *WeightQueue) Push(value interface{}, weight int) bool {
 	return true
 }
 
+// Pop pops an item from the queue. If no item is present the call blocks until a new item was pushed.
 func (q *WeightQueue) Pop() interface{} {
 	<-q.c
 	q.mtx.Lock()

@@ -1,10 +1,14 @@
-package node
+package queue
 
 import (
 	"container/heap"
 	"sync"
 )
 
+// WeightQueue implements a weighted priority queue.
+// In a high load regime, the network connection would be saturated and transactions with higher MWM
+// (minimum weight magnitude) would rise to the  top of the priority queue, so if you want your translation to propagate
+// faster in the network you would apply more PoW, hence setting priority based on MWM.
 type WeightQueue struct {
 	q   pQueue
 	c   chan bool

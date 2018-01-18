@@ -1,6 +1,7 @@
 package node
 
 import (
+	"github.com/eaigner/igi/queue"
 	"net"
 
 	"github.com/eaigner/igi/hash"
@@ -14,8 +15,8 @@ type UDP struct {
 	logger       Logger
 	conn         *net.UDPConn
 	txCache      *Cache
-	receiveQueue *WeightQueue
-	replyQueue   *WeightQueue
+	receiveQueue *queue.WeightQueue
+	replyQueue   *queue.WeightQueue
 	closed       bool
 }
 
@@ -26,8 +27,8 @@ func NewUDP(host string, minWeightMag int, logger Logger) *UDP {
 		done:         make(chan bool, 1),
 		logger:       logger,
 		txCache:      NewCache(1024),
-		receiveQueue: NewWeightQueue(1024),
-		replyQueue:   NewWeightQueue(1024),
+		receiveQueue: queue.NewWeightQueue(1024),
+		replyQueue:   queue.NewWeightQueue(1024),
 		closed:       false,
 	}
 }

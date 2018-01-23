@@ -21,9 +21,30 @@ func (bs *boltStore) Close() {
 }
 
 func (bs *boltStore) WriteBatch(batch []Entry) error {
-	return nil // TODO(era): impl
+	return bs.db.Update(func(tx *bolt.Tx) error {
+		for _, entry := range batch {
+			bucket, err := tx.CreateBucketIfNotExists(entry.BucketKey())
+			if err != nil {
+				return err
+			}
+			if err := bucket.Put(entry.Key, entry.Value); err != nil {
+				return err
+			}
+
+		}
+		return nil
+	})
 }
 
 func (bs *boltStore) ReadBatch(batch []Entry) error {
-	return nil // TODO(era): impl
+	return bs.db.View(func(tx *bolt.Tx) error {
+		for _, entry := range batch {
+			bucket, err := tx.CreateBucketIfNotExists(entry.BucketKey())
+			if err != nil {
+				return err
+			}
+			entry.Value = bucket.Get(entry.Key)
+		}
+		return nil
+	})
 }

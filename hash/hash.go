@@ -27,6 +27,11 @@ func Zero(hash []byte) bool {
 	return bytes.Equal(hash, nullBytes)
 }
 
+// Valid returns true if the provided byte hash has the correct length and is not the zero hash.
+func Valid(hash []byte) bool {
+	return len(hash) == SizeBytes && !Zero(hash)
+}
+
 // ZeroInt8 returns true if hash contains the zero trit hash.
 func ZeroInt8(hash []int8) bool {
 	if len(hash) != SizeTrits {
@@ -38,4 +43,27 @@ func ZeroInt8(hash []int8) bool {
 		}
 	}
 	return true
+}
+
+// Valid returns true if the provided int8/trit hash has the correct length and is not the zero hash.
+func ValidInt8(hash []int8) bool {
+	return len(hash) == SizeTrits && !ZeroInt8(hash)
+}
+
+// ToBytes converts an int8 hash to bytes
+func ToBytes(hash []int8) []byte {
+	buf := make([]byte, len(hash))
+	for i, v := range hash {
+		buf[i] = byte(v)
+	}
+	return buf
+}
+
+// ToInt8 converts a byte hash to int8
+func ToInt8(hash []byte) []int8 {
+	buf := make([]int8, len(hash))
+	for i, v := range hash {
+		buf[i] = int8(v)
+	}
+	return buf
 }

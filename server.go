@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/eaigner/igi/storage"
 	"log"
 	"os"
 	"os/signal"
@@ -16,6 +17,7 @@ func init() {
 	flag.StringVar(&conf.HttpHost, "p", ":15100", "http server address")
 	flag.StringVar(&conf.UdpHost, "u", ":15200", "udp socket address")
 	flag.StringVar(&conf.TcpHost, "y", ":15300", "tcp socket address")
+	flag.StringVar(&conf.DbPath, "db", "tangle.db", "tangle database path")
 	flag.BoolVar(&conf.Debug, "debug", false, "turn on debug mode")
 	flag.BoolVar(&conf.Testnet, "testnet", false, "use testnet")
 	flag.Var(&conf.Neighbors, "n", "single neighbor node URL, flag can be used multiple times")
@@ -41,7 +43,13 @@ func main() {
 		done <- true
 	}()
 
-	node := gonode.New(conf, logger)
+	db, err := storage.NewBoltStore(conf.DbPath)
+
+	if err != nil {
+		panic(err)
+	}
+
+	node := gonode.New(conf, db, logger)
 
 	logger.Println("starting node...")
 

@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/eaigner/igi/storage"
 
 	"github.com/eaigner/igi/hash"
 	"github.com/eaigner/igi/trinary"
@@ -57,6 +58,7 @@ const (
 
 var (
 	errMessageTooShort    = errors.New("message too short")
+	errTxAlreadyExists    = errors.New("transaction already exists")
 	errInvalidTxTimestamp = errors.New("invalid transaction timestamp")
 	errInvalidTxValue     = errors.New("invalid transaction value")
 	errInvalidTxHash      = errors.New("invalid transaction hash")
@@ -64,13 +66,13 @@ var (
 )
 
 type Message struct {
-	Digest            [sha256.Size]byte // SHA-256 digest of the transaction packet, excluding trailer bytes
-	Raw               []int8            // Raw transaction trits
-	Address           []int8            // Address trits
-	Trunk             []int8            // Trunk address trits
-	Branch            []int8            // Branch address trits
-	Bundle            []int8            // Bundle address trits
-	Tag               []int8            // Tag
+	TxBytes           []byte // Raw transaction bytes
+	TxTrits           []int8 // Raw transaction trits
+	Address           []int8 // Address trits
+	Trunk             []int8 // Trunk address trits
+	Branch            []int8 // Branch address trits
+	Bundle            []int8 // Bundle address trits
+	Tag               []int8 // Tag
 	ObsoleteTag       []int8
 	Nonce             []int8 // Nonce
 	ValueTrailer      []int8 // Trits after usable value
@@ -81,14 +83,29 @@ type Message struct {
 	Ts                int64
 	CurrentIndex      int64
 	LastIndex         int64
-	Trailer           []byte // UDP packet trailer
+	Trailer           []byte // UDP packet trailer. Only set if message was read with ParseUdpBytes.
 
 	txHash      []int8
 	trailerHash []int8
+	digest      []byte // SHA-256 digest of the transaction packet, excluding trailer bytes
 }
 
-func ParseUdpBytes(b []byte, minWeightMag int) (*Message, error) {
+// ParseUdpBytes parses a transaction including UDP trailer bytes.
+func ParseUdpBytes(b []byte) (*Message, error) {
 	if len(b) != udpPacketBytes {
+		return nil, errMessageTooShort
+	}
+	m, err := ParseTxBytes(b[:txnPacketBytes])
+	if err != nil {
+		return nil, err
+	}
+	m.Trailer = b[txnPacketBytes:]
+	return m, nil
+}
+
+// ParseTxBytes parses transaction bytes without an UDP trailer.
+func ParseTxBytes(b []byte) (*Message, error) {
+	if len(b) != txnPacketBytes {
 		return nil, errMessageTooShort
 	}
 
@@ -98,11 +115,9 @@ func ParseUdpBytes(b []byte, minWeightMag int) (*Message, error) {
 		return nil, err
 	}
 
-	digest := sha256.Sum256(b[:txnPacketBytes])
-
 	m := new(Message)
-	m.Digest = digest
-	m.Raw = t
+	m.TxBytes = b
+	m.TxTrits = t
 	m.Address = chunk(t, addressTrinaryOffset, addressTrinarySize)
 	m.Trunk = chunk(t, trunkTransactionTrinaryOffset, trunkTransactionTrinarySize)
 	m.Branch = chunk(t, branchTransactionTrinaryOffset, branchTransactionTrinarySize)
@@ -118,9 +133,16 @@ func ParseUdpBytes(b []byte, minWeightMag int) (*Message, error) {
 	m.Ts = chunkInt64(t, timestampTrinaryOffset, timestampTrinarySize)
 	m.CurrentIndex = chunkInt64(t, currentIndexTrinaryOffset, currentIndexTrinarySize)
 	m.LastIndex = chunkInt64(t, lastIndexTrinaryOffset, lastIndexTrinarySize)
-	m.Trailer = b[txnPacketBytes:]
 
 	return m, nil
+}
+
+func (m *Message) TxDigest() []byte {
+	if len(m.digest) < sha256.Size {
+		d := sha256.Sum256(m.TxBytes)
+		m.digest = d[:]
+	}
+	return m.digest
 }
 
 func (m *Message) TxHash() []int8 {
@@ -132,7 +154,7 @@ func (m *Message) TxHash() []int8 {
 
 	var curl hash.Curl
 	curl.Reset(hash.CurlP81)
-	curl.Absorb(m.Raw[:trinarySize])
+	curl.Absorb(m.TxTrits[:trinarySize])
 	curl.Squeeze(m.txHash)
 
 	return m.txHash
@@ -179,6 +201,28 @@ func (m Message) Validate(minWeightMag int) error {
 	}
 
 	return nil
+}
+
+// Store stores the message in the tangle.
+// Returns an error if storage failed or the transaction already exists.
+func (m Message) Store(tangle storage.Store) error {
+	if !hash.ValidInt8(m.TxHash()) {
+		return errInvalidTxHash
+	}
+
+	txHash := hash.ToBytes(m.TxHash())
+
+	// TODO(era): make exists and write check atomic
+	exists, err := storage.Exists(tangle, txHash, storage.TransactionBucket)
+
+	if err != nil {
+		return err
+	}
+	if exists {
+		return errTxAlreadyExists
+	}
+
+	return storage.Write(tangle, txHash, m.TxBytes, storage.TransactionBucket)
 }
 
 func (m Message) AddressTrytes() string {
@@ -231,7 +275,7 @@ func (m *Message) Debug() string {
 		m.CurrentIndex,
 		m.LastIndex,
 		hex.EncodeToString(m.Trailer),
-		hex.EncodeToString(m.Digest[:]),
+		hex.EncodeToString(m.TxDigest()),
 	)
 }
 

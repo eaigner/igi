@@ -16,10 +16,6 @@ type boltStore struct {
 	db *bolt.DB
 }
 
-func (bs *boltStore) Close() {
-	bs.db.Close()
-}
-
 func (bs *boltStore) WriteBatch(batch []Entry) error {
 	return bs.db.Update(func(tx *bolt.Tx) error {
 		for _, entry := range batch {
@@ -47,4 +43,8 @@ func (bs *boltStore) ReadBatch(batch []Entry) error {
 		}
 		return nil
 	})
+}
+
+func (bs *boltStore) Close() error {
+	return bs.db.Close()
 }

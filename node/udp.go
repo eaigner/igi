@@ -2,6 +2,7 @@ package node
 
 import (
 	"github.com/eaigner/igi/queue"
+	"github.com/eaigner/igi/storage"
 	"net"
 
 	"github.com/eaigner/igi/hash"
@@ -13,6 +14,7 @@ type UDP struct {
 	done         chan bool
 	minWeightMag int
 	logger       Logger
+	store        storage.Store
 	conn         *net.UDPConn
 	txCache      *Cache
 	receiveQueue *queue.WeightQueue
@@ -20,12 +22,13 @@ type UDP struct {
 	closed       bool
 }
 
-func NewUDP(host string, minWeightMag int, logger Logger) *UDP {
+func NewUDP(host string, minWeightMag int, logger Logger, store storage.Store) *UDP {
 	return &UDP{
 		host:         host,
 		minWeightMag: minWeightMag,
 		done:         make(chan bool, 1),
 		logger:       logger,
+		store:        store,
 		txCache:      NewCache(1024),
 		receiveQueue: queue.NewWeightQueue(1024),
 		replyQueue:   queue.NewWeightQueue(1024),
@@ -83,29 +86,35 @@ func (udp *UDP) replyLoop() {
 
 func (udp *UDP) receiveLoop() {
 	for !udp.closed {
-		var _ = udp.receiveQueue.Pop().(*receiveItem)
+		item := udp.receiveQueue.Pop().(*receiveItem)
+
 		// TODO: do something with item, implement "Node.processReceivedData"
+		if err := item.msg.Store(udp.store); err != nil {
+			// TODO: handle error
+		} else {
+			// TODO: was stored, broadcast
+		}
 	}
 }
 
 func (udp *UDP) handleMessage(b []byte, neighbor *net.UDPAddr) {
 	udp.logger.Printf("message from UDP neighbor: %v", neighbor)
 
-	msg, err := ParseUdpBytes(b, udp.minWeightMag)
+	msg, err := ParseUdpBytes(b)
 	if err != nil {
 		udp.logger.Printf("error parsing message: %v", err)
 		return // drop
 	}
 
 	// Check if we have seen this transaction lately
-	_, cached := udp.txCache.Get(msg.Digest)
+	_, cached := udp.txCache.Get(msg.TxDigest())
 
 	if !cached {
 		if err := msg.Validate(udp.minWeightMag); err != nil {
 			udp.logger.Printf("invalid message: %v", err)
 			return // drop
 		}
-		udp.txCache.Add(msg.Digest, msg.TxHash())
+		udp.txCache.Add(msg.TxDigest(), msg.TxHash())
 		udp.receiveQueue.Push(&receiveItem{msg, neighbor}, hash.WeightMagnitude(msg.TxHash()))
 	}
 

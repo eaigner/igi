@@ -1,30 +1,11 @@
 package storage
 
-import (
-	"bytes"
-	"encoding/binary"
-)
-
 const (
-	TransactionBucket Bucket = iota + 1
-	TransactionMetadataBucket
-	MilestoneBucket
-	StateDiffBucket
-	AddressBucket
-	ApproveeBucket
-	BundleBucket
-	TagBucket
+	TransactionBucket Bucket = 1
 )
 
 var allBuckets = []Bucket{
 	TransactionBucket,
-	TransactionMetadataBucket,
-	MilestoneBucket,
-	StateDiffBucket,
-	AddressBucket,
-	ApproveeBucket,
-	BundleBucket,
-	TagBucket,
 }
 
 var bucketKeys = map[Bucket][]byte{}
@@ -32,16 +13,11 @@ var bucketKeys = map[Bucket][]byte{}
 func init() {
 	// Converty bucket int ids to []byte keys
 	for _, bucket := range allBuckets {
-		var buf bytes.Buffer
-		err := binary.Write(&buf, binary.LittleEndian, int(bucket))
-		if err != nil {
-			panic(err)
-		}
-		bucketKeys[bucket] = buf.Bytes()
+		bucketKeys[bucket] = []byte{byte(bucket)}
 	}
 }
 
-type Bucket int
+type Bucket byte
 
 type Entry struct {
 	Bucket Bucket
@@ -59,6 +35,9 @@ type Store interface {
 
 	// ReadBatch reads a batch of entries from the DB. Upon success, the bytes value for each entry should be set.
 	ReadBatch(batch []Entry) error
+
+	// Close closes the store
+	Close() error
 }
 
 // Write is a convenience method to perform a single entry write.
@@ -73,4 +52,13 @@ func Read(s Store, key []byte, bucket Bucket) ([]byte, error) {
 		return nil, err
 	}
 	return entry.Value, nil
+}
+
+// Exists returns true if the key exists in the provided bucket
+func Exists(s Store, key []byte, bucket Bucket) (bool, error) {
+	item, err := Read(s, key, bucket)
+	if err != nil {
+		return false, err
+	}
+	return item != nil, nil
 }

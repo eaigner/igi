@@ -6,6 +6,7 @@ type Conf struct {
 	HttpHost           string
 	UdpHost            string
 	TcpHost            string
+	DbPath             string
 	Debug              bool
 	Testnet            bool
 	Neighbors          MultiString

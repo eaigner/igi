@@ -91,7 +91,9 @@ func (udp *UDP) receiveLoop() {
 		// TODO: do something with item, implement "Node.processReceivedData"
 		if err := item.msg.Store(udp.store); err != nil {
 			// TODO: handle error
+			udp.logger.Printf("message not stored: %v", err)
 		} else {
+			udp.logger.Printf("message stored %x", item.msg.digest)
 			// TODO: was stored, broadcast
 		}
 	}
@@ -106,15 +108,18 @@ func (udp *UDP) handleMessage(b []byte, neighbor *net.UDPAddr) {
 		return // drop
 	}
 
-	// Check if we have seen this transaction lately
-	_, cached := udp.txCache.Get(msg.TxDigest())
+	// Check if we have seen this transaction lately.
+	// []uint8 is not a valid cache key, so we use the hex digest.
+	key := msg.TxDigestHex()
+
+	_, cached := udp.txCache.Get(key)
 
 	if !cached {
 		if err := msg.Validate(udp.minWeightMag); err != nil {
 			udp.logger.Printf("invalid message: %v", err)
 			return // drop
 		}
-		udp.txCache.Add(msg.TxDigest(), msg.TxHash())
+		udp.txCache.Add(key, msg.TxHash())
 		udp.receiveQueue.Push(&receiveItem{msg, neighbor}, hash.WeightMagnitude(msg.TxHash()))
 	}
 

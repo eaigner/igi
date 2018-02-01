@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"github.com/boltdb/bolt"
+	"github.com/coreos/bbolt"
 )
 
 func NewBoltStore(path string) (Store, error) {

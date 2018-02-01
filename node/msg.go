@@ -145,6 +145,10 @@ func (m *Message) TxDigest() []byte {
 	return m.digest
 }
 
+func (m Message) TxDigestHex() string {
+	return hex.EncodeToString(m.TxDigest())
+}
+
 func (m *Message) TxHash() []int8 {
 	if len(m.txHash) > 0 {
 		return m.txHash

@@ -35,11 +35,9 @@ func (bs *boltStore) WriteBatch(batch []Entry) error {
 func (bs *boltStore) ReadBatch(batch []Entry) error {
 	return bs.db.View(func(tx *bolt.Tx) error {
 		for _, entry := range batch {
-			bucket, err := tx.CreateBucketIfNotExists(entry.BucketKey())
-			if err != nil {
-				return err
+			if bucket := tx.Bucket(entry.BucketKey()); bucket != nil {
+				entry.Value = bucket.Get(entry.Key)
 			}
-			entry.Value = bucket.Get(entry.Key)
 		}
 		return nil
 	})

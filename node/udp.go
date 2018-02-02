@@ -93,7 +93,7 @@ func (udp *UDP) receiveLoop() {
 			// TODO: handle error
 			udp.logger.Printf("message not stored: %v", err)
 		} else {
-			udp.logger.Printf("message stored %x", item.msg.digest)
+			udp.logger.Printf("message stored %v", item.msg.TxDigestHex())
 			// TODO: was stored, broadcast
 		}
 	}

@@ -16,7 +16,7 @@ var conf gonode.Conf
 func init() {
 	flag.StringVar(&conf.HttpHost, "p", ":15100", "http server address")
 	flag.StringVar(&conf.UdpHost, "u", ":15200", "udp socket address")
-	flag.StringVar(&conf.TcpHost, "y", ":15300", "tcp socket address")
+	flag.StringVar(&conf.TcpHost, "t", ":15300", "tcp socket address")
 	flag.StringVar(&conf.DbPath, "db", "tangle.db", "tangle database path")
 	flag.BoolVar(&conf.Debug, "debug", false, "turn on debug mode")
 	flag.BoolVar(&conf.Testnet, "testnet", false, "use testnet")

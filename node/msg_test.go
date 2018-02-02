@@ -61,7 +61,7 @@ func msgBytes() []byte {
 
 func TestParseUdpBytes(t *testing.T) {
 	b := msgBytes()
-	msg, err := ParseUdpBytes(b, 13)
+	msg, err := ParseUdpBytes(b)
 
 	// TODO: use message with all fields filled, this is suboptimal with zero values
 

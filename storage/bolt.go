@@ -31,7 +31,7 @@ func (bs *boltStore) WriteBatch(batch []Entry) error {
 	})
 }
 
-func (bs *boltStore) ReadBatch(batch []Entry) error {
+func (bs *boltStore) ReadBatch(batch []*Entry) error {
 	return bs.db.View(func(tx *bolt.Tx) error {
 		for _, entry := range batch {
 			if bucket := tx.Bucket(entry.BucketKey()); bucket != nil {

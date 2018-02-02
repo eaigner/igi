@@ -34,7 +34,7 @@ type Store interface {
 	WriteBatch(batch []Entry) error
 
 	// ReadBatch reads a batch of entries from the DB. Upon success, the bytes value for each entry should be set.
-	ReadBatch(batch []Entry) error
+	ReadBatch(batch []*Entry) error
 
 	// Close closes the store
 	Close() error
@@ -48,7 +48,7 @@ func Write(s Store, key, value []byte, bucket Bucket) error {
 // Read is a convenience method to perform a single entry read.
 func Read(s Store, key []byte, bucket Bucket) ([]byte, error) {
 	entry := Entry{Bucket: bucket, Key: key, Value: nil}
-	if err := s.ReadBatch([]Entry{entry}); err != nil {
+	if err := s.ReadBatch([]*Entry{&entry}); err != nil {
 		return nil, err
 	}
 	return entry.Value, nil

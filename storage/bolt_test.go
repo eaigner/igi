@@ -1,8 +1,8 @@
 package storage
 
 import (
-	"testing"
 	"os"
+	"testing"
 )
 
 func TestExists(t *testing.T) {
@@ -11,10 +11,8 @@ func TestExists(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer func() {
-		s.Close()
-		os.Remove(dbPath)
-	}()
+	defer s.Close()
+	defer os.Remove(dbPath)
 
 	k := []byte("testKey")
 	v := []byte("testValue")

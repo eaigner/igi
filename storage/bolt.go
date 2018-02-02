@@ -26,7 +26,6 @@ func (bs *boltStore) WriteBatch(batch []Entry) error {
 			if err := bucket.Put(entry.Key, entry.Value); err != nil {
 				return err
 			}
-
 		}
 		return nil
 	})

@@ -60,5 +60,5 @@ func Exists(s Store, key []byte, bucket Bucket) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return item != nil, nil
+	return len(item) > 0, nil
 }
